@@ -1,7 +1,9 @@
 package com.jdc.deno.projection.service
 
+import com.jdc.deno.projection.model.CountFunction
 import com.jdc.deno.projection.model.dto.MerchantDto
 import com.jdc.deno.projection.model.dto.MerchantListDto
+import com.jdc.deno.projection.model.dto.PageResponse
 import com.jdc.deno.projection.model.entity.Merchant
 import com.jdc.deno.projection.model.form.MerchantCreateForm
 import com.jdc.deno.projection.model.form.MerchantSearchForm
@@ -15,13 +17,26 @@ import org.springframework.transaction.annotation.Transactional
 class MerchantService(private val repo:MerchantRepo) {
 
     @Transactional(readOnly = true)
-    fun search(form: MerchantSearchForm): List<MerchantListDto> {
-        return repo.findAll {
+    fun search(form: MerchantSearchForm, current:Int, max:Int): PageResponse<MerchantListDto> {
+
+        val countFunc:CountFunction = {
+            val query = it.createQuery(Long::class.java)
+            val root = query.from(Merchant::class.java)
+            query.select(it.count(root))
+            query.where(form.where(it, root))
+            query
+        }
+
+        val page = repo.findAll(current, max, countFunc) {
             val query = it.createQuery(MerchantListDto::class.java)
             val root = query.from(Merchant::class.java)
             MerchantListDto.select(query, root)
             query.where(form.where(it, root))
             query
+        }
+
+        return  page.let {
+            PageResponse(it.content, current, max, it.count())
         }
     }
 
