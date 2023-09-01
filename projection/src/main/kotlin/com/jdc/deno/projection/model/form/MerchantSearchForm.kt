@@ -16,15 +16,15 @@ data class MerchantSearchForm(
         var predicate = cb.isFalse(root.get("deleted"))
 
         if(null != name && StringUtils.hasLength(name)) {
-            predicate = cb.and(predicate, cb.equal(root.get<String>("name"), name))
+            predicate = cb.and(predicate, cb.like(cb.lower(root.get("name")), "${name.lowercase()}%"))
         }
 
         if(null != phone && StringUtils.hasLength(phone)) {
-            predicate = cb.and(predicate, cb.equal(root.get<String>("phone"), phone))
+            predicate = cb.and(predicate, cb.like(root.get("phone"), "${phone.lowercase()}%"))
         }
 
         if(null != email && StringUtils.hasLength(email)) {
-            predicate = cb.and(predicate, cb.equal(root.get<String>("email"), email))
+            predicate = cb.and(predicate, cb.like(root.get("email"), "${email.lowercase()}%"))
         }
 
         return predicate
