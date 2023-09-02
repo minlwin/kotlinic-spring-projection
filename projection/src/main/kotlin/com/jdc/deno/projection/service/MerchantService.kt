@@ -35,10 +35,17 @@ class MerchantService(private val repo:MerchantRepo) {
             query
         }
 
-        return  page.let {
-            PageResponse(it.content, current, max, it.count())
-        }
+        return  PageResponse(page)
     }
+
+    fun searchForExport(form: MerchantSearchForm) =
+        repo.findAll {
+            val query = it.createQuery(MerchantListDto::class.java)
+            val root = query.from(Merchant::class.java)
+            MerchantListDto.select(query, root)
+            query.where(form.where(it, root))
+            query
+        }
 
     @Transactional
     fun create(form: MerchantCreateForm):MerchantDto {
