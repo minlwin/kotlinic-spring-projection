@@ -1,0 +1,37 @@
+version: '3'
+
+volumes:
+  projection_auth_db:
+    driver: local
+
+services:
+  auth_db:
+    image: postgres:latest
+    volumes:
+      - projection_auth_db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak_db
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    ports:
+      - "5432:5432"
+  auth_server:
+    image: quay.io/keycloak/keycloak:latest
+    environment:
+      DB_VENDOR: postgres
+      DB_ADDR: db
+      DB_SCHEMA: public
+      DB_DATABASE: keycloak_db
+      DB_USER: keycloak
+      DB_PASSWORD: keycloak
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME: localhost
+      KC_FEATURES: 'declarative-user-profile'
+    ports:
+      - "8089:8089"
+    depends_on:
+      - auth_db
+    command:
+      - start-dev
+
